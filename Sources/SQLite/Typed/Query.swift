@@ -1173,7 +1173,7 @@ public struct Row {
 
             switch similar.count {
             case 0:
-                throw QueryError.noSuchColumn(name: column.template, columns: columnNames.keys.sorted())
+                throw QueryError.noSuchColumn(name: column.template, columns: Array(columnNames.keys))
             case 1:
                 return valueAtIndex(columnNames[similar[0]]!)
             default:
