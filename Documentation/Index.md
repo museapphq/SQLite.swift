@@ -81,7 +81,7 @@ process of downloading, compiling, and linking dependencies.
 
   ```swift
   dependencies: [
-    .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.13.0")
+    .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.13.3")
   ]
   ```
 
@@ -102,7 +102,7 @@ install SQLite.swift with Carthage:
  2. Update your Cartfile to include the following:
 
     ```ruby
-    github "stephencelis/SQLite.swift" ~> 0.13.0
+    github "stephencelis/SQLite.swift" ~> 0.13.3
     ```
 
  3. Run `carthage update` and [add the appropriate framework][Carthage Usage].
@@ -132,7 +132,7 @@ install SQLite.swift with Carthage:
     use_frameworks!
 
     target 'YourAppTargetName' do
-        pod 'SQLite.swift', '~> 0.13.0'
+        pod 'SQLite.swift', '~> 0.13.3'
     end
     ```
 
@@ -146,7 +146,7 @@ with the OS you can require the `standalone` subspec:
 
 ```ruby
 target 'YourAppTargetName' do
-  pod 'SQLite.swift/standalone', '~> 0.13.0'
+  pod 'SQLite.swift/standalone', '~> 0.13.3'
 end
 ```
 
@@ -156,7 +156,7 @@ dependency to sqlite3 or one of its subspecs:
 
 ```ruby
 target 'YourAppTargetName' do
-  pod 'SQLite.swift/standalone', '~> 0.13.0'
+  pod 'SQLite.swift/standalone', '~> 0.13.3'
   pod 'sqlite3/fts5', '= 3.15.0'  # SQLite 3.15.0 with FTS5 enabled
 end
 ```
@@ -170,7 +170,9 @@ If you want to use [SQLCipher][] with SQLite.swift you can require the
 
 ```ruby
 target 'YourAppTargetName' do
-  pod 'SQLite.swift/SQLCipher', '~> 0.13.0'
+  # Make sure you only require the subspec, otherwise you app might link against
+  # the system SQLite, which means the SQLCipher-specific methods won't work.
+  pod 'SQLite.swift/SQLCipher', '~> 0.13.3'
 end
 ```
 
@@ -1172,7 +1174,7 @@ joined by the `<-` operator. Upserting is like inserting, except if there is a
 conflict on the specified column value, SQLite will perform an update on the row instead.
 
 ```swift
-try db.run(users.upsert(email <- "alice@mac.com", name <- "Alice"), onConflictOf: email)
+try db.run(users.upsert(email <- "alice@mac.com", name <- "Alice", onConflictOf: email))
 // INSERT INTO "users" ("email", "name") VALUES ('alice@mac.com', 'Alice') ON CONFLICT (\"email\") DO UPDATE SET \"name\" = \"excluded\".\"name\"
 ```
 
@@ -1455,21 +1457,11 @@ try db.run(users.drop(ifExists: true))
 
 ### Migrations and Schema Versioning
 
-You can add a convenience property on `Connection` to query and set the
+You can use the convenience property on `Connection` to query and set the
 [`PRAGMA user_version`](https://sqlite.org/pragma.html#pragma_user_version).
 
 This is a great way to manage your schema’s version over migrations.
-
-```swift
-extension Connection {
-    public var userVersion: Int32 {
-        get { return Int32(try! scalar("PRAGMA user_version") as! Int64)}
-        set { try! run("PRAGMA user_version = \(newValue)") }
-    }
-}
-```
-
-Then you can conditionally run your migrations along the lines of:
+You can conditionally run your migrations along the lines of:
 
 ```swift
 if db.userVersion == 0 {
@@ -1970,6 +1962,14 @@ using the following functions.
             // id: Optional(1), email: Optional("alice@mac.com")
         }
     }
+    ```
+    Statements with results may be iterated over, using a `RowIterator` if
+    useful.
+    
+    ```swift
+    let emailColumn = Expression<String>("email")
+    let stmt = try db.prepare("SELECT id, email FROM users")
+    let emails = try! stmt.prepareRowIterator().map { $0[emailColumn] }
     ```
 
   - `run` prepares a single `Statement` object from a SQL string, optionally

@@ -326,6 +326,10 @@ class SchemaTests: XCTestCase {
             table.create { t in t.column(int64, unique: true, references: table, int64) }
         )
         XCTAssertEqual(
+            "CREATE TABLE \"table\" (\"int64\" INTEGER PRIMARY KEY NOT NULL REFERENCES \"table\" (\"int64\"))",
+            table.create { t in t.column(int64, primaryKey: true, references: table, int64) }
+        )
+        XCTAssertEqual(
             "CREATE TABLE \"table\" (\"int64\" INTEGER NOT NULL CHECK (\"int64\" > 0) REFERENCES \"table\" (\"int64\"))",
             table.create { t in t.column(int64, check: int64 > 0, references: table, int64) }
         )
@@ -338,11 +342,22 @@ class SchemaTests: XCTestCase {
             table.create { t in t.column(int64, unique: true, check: int64 > 0, references: table, int64) }
         )
         XCTAssertEqual(
+            "CREATE TABLE \"table\" (\"int64\" INTEGER PRIMARY KEY NOT NULL CHECK (\"int64\" > 0) REFERENCES \"table\" (\"int64\"))",
+            table.create { t in t.column(int64, primaryKey: true, check: int64 > 0, references: table, int64) }
+        )
+        XCTAssertEqual(
             """
             CREATE TABLE \"table\" (\"int64\" INTEGER NOT NULL UNIQUE CHECK (\"int64Optional\" > 0) REFERENCES
              \"table\" (\"int64\"))
             """.replacingOccurrences(of: "\n", with: ""),
             table.create { t in t.column(int64, unique: true, check: int64Optional > 0, references: table, int64) }
+        )
+        XCTAssertEqual(
+            """
+            CREATE TABLE \"table\" (\"int64\" INTEGER PRIMARY KEY NOT NULL CHECK (\"int64Optional\" > 0) REFERENCES
+             \"table\" (\"int64\"))
+            """.replacingOccurrences(of: "\n", with: ""),
+            table.create { t in t.column(int64, primaryKey: true, check: int64Optional > 0, references: table, int64) }
         )
 
         XCTAssertEqual(
@@ -352,6 +367,10 @@ class SchemaTests: XCTestCase {
         XCTAssertEqual(
             "CREATE TABLE \"table\" (\"int64Optional\" INTEGER UNIQUE REFERENCES \"table\" (\"int64\"))",
             table.create { t in t.column(int64Optional, unique: true, references: table, int64) }
+        )
+        XCTAssertEqual(
+            "CREATE TABLE \"table\" (\"int64Optional\" INTEGER PRIMARY KEY REFERENCES \"table\" (\"int64\"))",
+            table.create { t in t.column(int64Optional, primaryKey: true, references: table, int64) }
         )
         XCTAssertEqual(
             "CREATE TABLE \"table\" (\"int64Optional\" INTEGER CHECK (\"int64\" > 0) REFERENCES \"table\" (\"int64\"))",
@@ -366,8 +385,16 @@ class SchemaTests: XCTestCase {
             table.create { t in t.column(int64Optional, unique: true, check: int64 > 0, references: table, int64) }
         )
         XCTAssertEqual(
+            "CREATE TABLE \"table\" (\"int64Optional\" INTEGER PRIMARY KEY CHECK (\"int64\" > 0) REFERENCES \"table\" (\"int64\"))",
+            table.create { t in t.column(int64Optional, primaryKey: true, check: int64 > 0, references: table, int64) }
+        )
+        XCTAssertEqual(
             "CREATE TABLE \"table\" (\"int64Optional\" INTEGER UNIQUE CHECK (\"int64Optional\" > 0) REFERENCES \"table\" (\"int64\"))",
             table.create { t in t.column(int64Optional, unique: true, check: int64Optional > 0, references: table, int64) }
+        )
+        XCTAssertEqual(
+            "CREATE TABLE \"table\" (\"int64Optional\" INTEGER PRIMARY KEY CHECK (\"int64Optional\" > 0) REFERENCES \"table\" (\"int64\"))",
+            table.create { t in t.column(int64Optional, primaryKey: true, check: int64Optional > 0, references: table, int64) }
         )
     }
 
